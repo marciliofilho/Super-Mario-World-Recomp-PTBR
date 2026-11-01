@@ -23,13 +23,17 @@
 .PARAMETER Clean
     Remove build/ antes de configurar.
 
+.PARAMETER Version
+    Versao gravada no executavel (host_report). Padrao: 0.15.5-ptbr.2
+
 .EXAMPLE
     .\tools\build.ps1
 #>
 [CmdletBinding()]
 param(
     [switch]$SkipRegen,
-    [switch]$Clean
+    [switch]$Clean,
+    [string]$Version = '0.15.5-ptbr.2'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -173,15 +177,15 @@ if ($Clean -and (Test-Path $Build)) {
     Remove-Item $Build -Recurse -Force
 }
 
-if (-not (Test-Path (Join-Path $Build 'CMakeCache.txt'))) {
-    Write-Host ""
-    Write-Host "=== configure ===" -ForegroundColor Cyan
-    & $CMake -S $AsciiRepo -B $Build -G 'Visual Studio 17 2022' -A x64 `
-        "-DPython3_EXECUTABLE=$($Py.Replace('\','/'))" `
-        -DSMW_BUNDLE_FALCON_CACHE_HELPER=OFF `
-        -DSNESRECOMP_BUILD_VERSION=ptbr-1.2
-    if ($LASTEXITCODE -ne 0) { throw "configure falhou (exit $LASTEXITCODE)" }
-}
+# O configure roda sempre: e idempotente e garante que opcoes e a versao
+# gravada no executavel nao fiquem presas a um cache antigo de outra release.
+Write-Host ""
+Write-Host "=== configure ===" -ForegroundColor Cyan
+& $CMake -S $AsciiRepo -B $Build -G 'Visual Studio 17 2022' -A x64 `
+    "-DPython3_EXECUTABLE=$($Py.Replace('\','/'))" `
+    -DSMW_BUNDLE_FALCON_CACHE_HELPER=OFF `
+    "-DSNESRECOMP_BUILD_VERSION=$Version"
+if ($LASTEXITCODE -ne 0) { throw "configure falhou (exit $LASTEXITCODE)" }
 
 Write-Host ""
 Write-Host "=== build ===" -ForegroundColor Cyan
