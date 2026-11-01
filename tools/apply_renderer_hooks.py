@@ -12,6 +12,17 @@ PCS = (0x02A82E, 0x01B844, 0x01AC7C, 0x02D076, 0x03B8A8, 0x02A204, 0x019E93, 0x0
 # The normal sprite dispatcher is currently certified LLE-only. Its interpreter
 # boundaries are always armed; instrument them too if a future generator emits it.
 OPTIONAL_PCS = (0x0180AF, 0x0180B2)
+# Sites that sit inside a function the generator emits as LLE-only for a ROM
+# that relocates code into the expanded area (bank $10+). The hook cannot be
+# installed because there is no AOT body to instrument, and the interpreter
+# covers the behaviour instead. Keyed by PC so the waiver stays reviewable and
+# cannot silently spread to other sites.
+#
+# 0x029B0C / 0x029B12 are the loop head and JSR return inside
+# ProcessExtendedSprites (0x029B0A). The PT-BR translation repoints the sprite
+# pointer tables at 0x0084F1.. from bank $0C copies to bank $10 copies, so the
+# analyzer no longer proves an AOT entry for the stock copy.
+LLE_COVERED_PCS = frozenset({0x029B0C, 0x029B12})
 MARKER = '/*SMW-HOST*/'
 def apply(text):
     if '/*WS-' in text:
@@ -81,7 +92,13 @@ def main():
         if changed != text: updates.append((path, changed))
     missing = set(PCS) | {'draw', 'fireball', 'frontier', 'wing_cull', 'sprite_allocation', 'baseball_cull', 'player_cull', 'player_contact'}
     missing -= found
-    if missing: raise SystemExit(f'Missing required renderer hook sites: {missing}')
+    waived = missing & LLE_COVERED_PCS
+    if waived:
+        print('SMW host hooks: LLE-covered sites skipped: '
+              + ', '.join(f'0x{pc:06X}' for pc in sorted(waived)))
+        missing -= waived
+    if missing:
+        raise SystemExit(f'Missing required renderer hook sites: {missing}')
     for path, changed in updates: path.write_text(changed, encoding='utf-8', newline='\n')
     print(f'SMW host hooks: {len(found)} sites, {len(updates)} banks updated')
 

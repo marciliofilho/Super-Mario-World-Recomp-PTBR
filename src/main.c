@@ -1232,11 +1232,13 @@ int main(int argc, char** argv) {
    * On success, replace argv so the existing ReadWholeFile + oracle init
    * paths below pick up the resolved path without further changes.
    *
-   * CRC32 of Super Mario World (USA), unheadered 512KB. The launcher
+   * CRC32 of this port's ROM: Super Mario World (USA) with the Killer Skull
+   * v1.2 Brazilian Portuguese translation, built by tools/apply_ips.ps1 from
+   * the stock unheadered 512KB dump. The launcher
    * skips a 512-byte SMC copier header automatically before hashing,
    * so headered and unheadered dumps both verify against this value. */
   static char rom_path_buf[1024];
-  static const uint32_t kSmwUsaCrc32 = 0xB19ED489u;
+  static const uint32_t kSmwUsaCrc32 = 0x82B20638u;
   int rom_resolved_by_launcher = 0;
 
 #ifdef SMW_COOP_BUILD
@@ -1299,7 +1301,11 @@ int main(int argc, char** argv) {
 #if SNESRECOMP_ENABLE_MODS
   mods_ready = snes_mod_runtime_initialize_c(
       SNES_MOD_CATALOG_ROOT, "super-mario-world-us",
-      "0838e531fe22c077528febe14cb3ff7c492f1f5fa8de354192bdff7137c27f5b");
+      /* SHA-256 of the patched PT-BR image (tools/apply_ips.ps1), not the
+       * stock dump. The shipped packages target the stock image, so this
+       * port reports mods as unavailable and boots without them; the mod
+       * plan is then never committed against a ROM it does not match. */
+      "f0bb0f4099f6192ed7cefeef5719e9c633d6c61f9b6279252ddf3af092f46dfa");
   if (!mods_ready)
     fprintf(stderr, "SNES mods unavailable: %s\n",
             snes_mod_runtime_last_error_c());
@@ -1505,7 +1511,8 @@ int main(int argc, char** argv) {
         g_config.enable_gamepad[0]   = ls.player_src[0] == 2;
         g_config.enable_gamepad[1]   = ls.player_src[1] == 2;
         g_config.has_keyboard_controls =
-            (uint8)((ls.player_src[0] == 1 ? 1 : 0) | (ls.player_src[1] == 1 ? 2 : 0));
+            (uint8)((ls.player_src[0] == 1 ? 1 : 0) | (ls.player_src[1] == 1 ? 2 : 0)
+                    | (ls.player_src[0] == 2 ? 1 : 0) | (ls.player_src[1] == 2 ? 2 : 0));
         g_config.deadzone[0] = (uint8)ls.deadzone[0];
         g_config.deadzone[1] = (uint8)ls.deadzone[1];
         g_config.skip_launcher = ls.skip_launcher != 0;
@@ -1523,6 +1530,11 @@ int main(int argc, char** argv) {
          * so rebinds work on THIS boot, not the next one. (WriteConfigFile
          * above preserves [KeyMap] lines, so order is safe.) */
         ConfigReloadKeyMap(config_file);
+        /* Keyboard is always available for player 1, even when a gamepad is
+         * the selected input source: the two inputs are OR-ed in
+         * RefreshKeybindControllerBits, so a plugged-in controller no longer
+         * disables the keyboard. */
+        g_config.has_keyboard_controls |= 1;
 #if defined(RECOMP_LAUNCHER) && defined(SMW_COOP_BUILD)
         if (net.enabled) {
           snes_netplay_config_defaults(&g_netplay_cfg);
@@ -2592,7 +2604,9 @@ error_reading:;
       g_config.enable_gamepad[1] = ls.player_src[1] == 2;
       g_config.has_keyboard_controls =
           (uint8)((ls.player_src[0] == 1 ? 1 : 0) |
-                  (ls.player_src[1] == 1 ? 2 : 0));
+                  (ls.player_src[1] == 1 ? 2 : 0) |
+                  (ls.player_src[0] == 2 ? 1 : 0) |
+                  (ls.player_src[1] == 2 ? 2 : 0));
       g_config.deadzone[0] = (uint8)ls.deadzone[0];
       g_config.deadzone[1] = (uint8)ls.deadzone[1];
       WriteConfigFile(config_file);

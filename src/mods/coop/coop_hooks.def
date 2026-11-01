@@ -2,7 +2,7 @@
 COOP_HOOK(0x009CB0) /* EnterFileSelect, before reading any file */
 COOP_HOOK(0x009D22) /* FileSelected.NotValid, after validation/copy */
 COOP_HOOK(0x009E0D) /* Native player-count choice, before loading campaign */
-COOP_HOOK(0x00C569) /* Player update, after once-per-world shared timers */
+COOP_HOOK_INSIDE(0x00C569,0x00C47E) /* Player update, after once-per-world shared timers, inside GM14Level */
 COOP_HOOK(0x00FEA8) /* Original two-slot fireball spawn in its actor's bank */
 COOP_HOOK(0x029B0A) /* Owned projectile banks, then the single shared extended pool */
 COOP_HOOK(0x02A3F6) /* Extended hazard/cloud-coin contacts query all active actors */
@@ -43,7 +43,7 @@ COOP_HOOK(0x00E9A1) /* Screen clamp; keep actual terrain/autoscroll crushing */
 COOP_HOOK_INSIDE(0x00A21B,0x00A1DA) /* Shared pause, inside GM14Level */
 COOP_HOOK_INSIDE(0x00A28A,0x00A1DA) /* GM14 gameplay after pause/messages */
 COOP_HOOK(0x00D273) /* Collect pipe/door room requests before one team commit */
-COOP_HOOK(0x00F2CD) /* Valid midway tape contact before native removal/effects */
+COOP_HOOK_INSIDE(0x00F2CD,0x00F2C9) /* Valid midway tape contact before native removal/effects */
 COOP_HOOK(0x01C0C2) /* Goal tape after movement, before player crossing tests */
 COOP_HOOK(0x01C0E7) /* Goal crossing accepted, before shared clear effects */
 COOP_HOOK(0x01C107) /* Goal bonus contact result before shared award */
@@ -52,8 +52,8 @@ COOP_HOOK(0x00C915) /* Shared victory director; followers run only actor motion 
 COOP_HOOK(0x018773) /* Goal sphere after graphics/sparkles, before contact */
 COOP_HOOK(0x018778) /* Goal sphere contact before native shared clear effects */
 COOP_HOOK(0x07F722) /* Sprite initialization retires the previous slot identity */
-COOP_HOOK(0x05D8B7) /* Native loader has resolved the complete 9-bit room number */
-COOP_HOOK(0x05D83E) /* Direct retry uses translevel, not overwritten overworld Map16 */
+COOP_HOOK_INSIDE(0x05D8B7,0x05D796) /* Native loader has resolved the complete 9-bit room number */
+COOP_HOOK_INSIDE(0x05D83E,0x05D796) /* Direct retry uses translevel, not overwritten overworld Map16 */
 COOP_HOOK(0x02ABF2) /* Room sprite cleanup preserves every owned carried object */
 COOP_HOOK(0x02A751) /* Shared loader once, native entrance for every carried mount */
 COOP_HOOK(0x00FC7A) /* Suppress singleton spawn inside the scoped room loader */
@@ -70,7 +70,7 @@ COOP_HOOK(0x01EA70) /* Singleton Yoshi draw replaced by one scoped draw per moun
 COOP_HOOK(0x01F58E) /* Tongue candidate must respect carrier and other-mouth ownership */
 COOP_HOOK(0x01F59B) /* Accepted edible tongue contact, before claim or Pokey response */
 COOP_HOOK(0x02D1CA) /* Accepted body berry, before delayed mouth claim */
-COOP_HOOK(0x02BAAF) /* Tongue berry cannot steal another mount's pending body bite */
+COOP_HOOK_INSIDE(0x02BAAF,0x02B9FA) /* Tongue berry cannot steal another mount's pending body bite */
 COOP_HOOK_INSIDE(0x01F78A,0x01F764) /* Placed egg's baby/1-up result uses the roster cap */
 COOP_HOOK(0x02EA8A) /* Baby food contact respects held and other-mouth ownership */
 COOP_HOOK(0x0289E1) /* A Yoshi-block egg has a real allocated native sprite slot */

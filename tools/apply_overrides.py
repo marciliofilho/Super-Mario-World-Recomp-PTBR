@@ -142,6 +142,42 @@ def strip_injections(text):
 # Recognize a generated function definition header to scope block patches.
 _FUNC_HDR = re.compile(r"^RecompReturn\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*CpuState")
 
+# One row of the generated dispatch table:
+#   { 0x02A82Eu, { NULL, NULL, Name_M1X0, Name_M1X1 }, 0 },  /* Name */
+_DISPATCH_ROW = re.compile(
+    r"\{\s*0x([0-9A-Fa-f]+)u,\s*\{([^}]*)\},\s*-?\d+\s*\},\s*/\*\s*([^*]*?)\s*\*/")
+_VARIANT_SUFFIX = re.compile(r"_M[01]X[01]$")
+
+
+def dispatch_index(gen_dir):
+    """Return generated base name -> (entry pc24, interpreter-only).
+
+    A row whose four M/X slots are all NULL routes every variant through the
+    interpreter, so no generated body exists to instrument. Used to tell a
+    real regression (the seam moved) from a function this ROM only ever runs
+    interpreted.
+    """
+    path = os.path.join(gen_dir, "dispatch_v2.c")
+    if not os.path.isfile(path):
+        return {}
+    with open(path, "r", encoding="utf-8", newline="") as f:
+        text = f.read()
+    return {
+        m.group(3): (int(m.group(1), 16), "NULL, NULL, NULL, NULL" in m.group(2))
+        for m in _DISPATCH_ROW.finditer(text)
+    }
+
+
+def interpreter_only_patches(index):
+    """Block patches whose owning generated function is interpreter-only."""
+    skipped = set()
+    for patch in BLOCK_PATCHES:
+        base = _VARIANT_SUFFIX.sub("", patch["func_match"])
+        entry = index.get(base)
+        if entry and entry[1]:
+            skipped.add(patch["marker"])
+    return skipped
+
 
 def apply_block_patches(text):
     """Apply BLOCK_PATCHES to one file's text, function-scoped. Returns (text, n)."""
@@ -332,6 +368,11 @@ def main():
     if not os.path.isdir(args.gen_dir):
         sys.exit(f"apply_overrides: gen dir not found: {args.gen_dir}")
 
+    # A function this ROM only runs through the interpreter has no generated
+    # body, so its block patches cannot be installed. Report that explicitly
+    # instead of failing the build or silently pretending the hook exists.
+    interpreted = interpreter_only_patches(dispatch_index(args.gen_dir))
+
     matched_bases = set()
     total = 0
     for name in sorted(os.listdir(args.gen_dir)):
@@ -367,7 +408,8 @@ def main():
         # their unique marker instead, so an inlined native seam cannot
         # silently regress into a no-op hook on a dead standalone entry.
         checked_patches = [p for p in BLOCK_PATCHES
-                           if p.get("check_exactly_once")]
+                           if p.get("check_exactly_once")
+                           and p["marker"] not in interpreted]
         marker_counts = {p["marker"]: 0 for p in checked_patches}
         scoped_marker_counts = {p["marker"]: 0 for p in checked_patches}
         for name in os.listdir(args.gen_dir):
@@ -394,6 +436,9 @@ def main():
                 + details
             )
 
+    if interpreted:
+        print("apply_overrides: interpreter-only owners, hooks inactive in this ROM: "
+              + ", ".join(sorted(interpreted)))
     print(f"apply_overrides: injected {total} dispatch prologue(s)")
     return 0
 
