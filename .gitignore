@@ -20,3 +20,6 @@ SuperMarioWorldRecomp/
 # Ferramentas
 .vs/
 *.user
+
+# Relatorio de execucao gerado pelo benchmark
+last_run_report.json
