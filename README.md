@@ -9,6 +9,23 @@ para PT-BR (Killer Skull v1.2)** como entrada do recompilador.
 > derivam de obra comercial. Nada disso deve ser redistribuído.
 > Ver `docs/DIAGNOSTICO.md` §9.
 
+## Download (Windows x64)
+
+Build pronto na release do fork:
+[v0.15.5-ptbr](https://github.com/marciliofilho/SuperMarioWorldRecomp/releases/tag/v0.15.5-ptbr).
+
+O pacote contém apenas o executável, `assets/`, `mods/` e os arquivos de
+configuração — **não** inclui ROM nem patch. Para jogar, você precisa de:
+
+1. ROM americana de *Super Mario World* (dump limpo, sem header).
+2. Patch de tradução **Killer Skull v1.2** aplicado por você.
+
+O resultado deve ter CRC32 `82B20638` e SHA-256
+`f0bb0f4099f6192ed7cefeef5719e9c633d6c61f9b6279252ddf3af092f46dfa`.
+Qualquer outra ROM é rejeitada na inicialização.
+
+Para compilar do zero, siga as seções de build abaixo.
+
 ## Créditos e licença
 
 Este repositório **não é um fork**. Contém apenas documentação e scripts
