@@ -68,8 +68,46 @@ if (-not (Test-Path (Join-Path $CargoBin 'cargo.exe'))) {
     throw "cargo nao encontrado em $CargoBin (instale Rust: winget install Rustlang.Rustup)"
 }
 
-$CMake = (Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\*\*\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe' -ErrorAction SilentlyContinue |
-          Select-Object -First 1).FullName
+# Descoberta tolerante ao layout da instalacao: o VS pode estar em
+# "Program Files" ou "Program Files (x86)" e o nivel de pastas depois de
+# 2022\<edicao> varia entre versoes/atualizacoes. Preferimos o vswhere,
+# que e a fonte oficial, e so depois caimos para glob e PATH.
+function Find-CMake {
+    $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+    if (Test-Path $vswhere) {
+        $installs = & $vswhere -all -products * -requires Microsoft.VisualStudio.Component.VC.CMake.Project -property installationPath 2>$null
+        foreach ($install in @($installs)) {
+            if (-not $install) { continue }
+            $candidate = Join-Path $install 'Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe'
+            if (Test-Path $candidate) { return $candidate }
+        }
+        # Componente CMake presente mas sem o VC.CMake.Project: aceita assim mesmo.
+        $installs = & $vswhere -all -products * -property installationPath 2>$null
+        foreach ($install in @($installs)) {
+            if (-not $install) { continue }
+            $candidate = Join-Path $install 'Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe'
+            if (Test-Path $candidate) { return $candidate }
+        }
+    }
+
+    foreach ($root in @(
+        'C:\Program Files\Microsoft Visual Studio',
+        'C:\Program Files (x86)\Microsoft Visual Studio'
+    )) {
+        if (-not (Test-Path $root)) { continue }
+        $found = Get-ChildItem -Path $root -Recurse -Filter cmake.exe -ErrorAction SilentlyContinue |
+                 Where-Object { $_.FullName -match '\\CMake\\bin\\cmake\.exe$' } |
+                 Select-Object -First 1
+        if ($found) { return $found.FullName }
+    }
+
+    $onPath = Get-Command cmake.exe -ErrorAction SilentlyContinue
+    if ($onPath) { return $onPath.Source }
+
+    return $null
+}
+
+$CMake = Find-CMake
 if (-not $CMake) { throw "cmake nao encontrado (instale VS 2022 Build Tools com VC.CMake.Project)" }
 
 $Bash = 'C:\Program Files\Git\bin\bash.exe'
@@ -113,9 +151,14 @@ if (-not $SkipRegen) {
     $env:PYTHON = $bashPy
 
     # Caminho com acento nao sobrevive a interpolacao do PowerShell no -c do
-    # bash quando ele vem de $env:; por isso o cd e feito por variavel de
-    # ambiente do bash, nao por texto embutido.
-    $env:SMW_REPO = $Repo.Replace('\', '/')
+    # bash quando ele vem de $env: (o Windows converte para a code page ANSI e
+    # o bash recebe bytes invalidos -> "cd: too many arguments"). Como o build
+    # ja usa a junction ASCII, o regen tambem roda por ela.
+    $bashRepo = $AsciiRepo.Replace('\', '/')
+    if ($bashRepo -match '^([A-Za-z]):') {
+        $bashRepo = '/' + $Matches[1].ToLower() + $bashRepo.Substring(2)
+    }
+    $env:SMW_REPO = $bashRepo
     & $Bash -c 'cd "$SMW_REPO" && ./tools/regen.sh --stock --no-tests'
     if ($LASTEXITCODE -ne 0) { throw "regen.sh falhou (exit $LASTEXITCODE)" }
 }

@@ -22,7 +22,7 @@ separadamente, como fork, para preservar a linhagem e a licença:
 - Fork: https://github.com/marciliofilho/SuperMarioWorldRecomp
 - Branch: `ptbr`
 - Notas: `PTBR.md` no fork
-- Build para Windows x64: release [`v0.15.5-ptbr`](https://github.com/marciliofilho/SuperMarioWorldRecomp/releases/tag/v0.15.5-ptbr) — apenas executável e assets, sem ROM nem patch
+- Build para Windows x64: release [`v0.15.5-ptbr.2`](https://github.com/marciliofilho/SuperMarioWorldRecomp/releases/tag/v0.15.5-ptbr.2) — base upstream 0.15.5, apenas executável e assets, sem ROM nem patch
 
 ## Tradução
 

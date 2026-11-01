@@ -12,7 +12,8 @@ para PT-BR (Killer Skull v1.2)** como entrada do recompilador.
 ## Download (Windows x64)
 
 Build pronto na release do fork:
-[v0.15.5-ptbr](https://github.com/marciliofilho/SuperMarioWorldRecomp/releases/tag/v0.15.5-ptbr).
+[v0.15.5-ptbr.2](https://github.com/marciliofilho/SuperMarioWorldRecomp/releases/tag/v0.15.5-ptbr.2)
+(base upstream **0.15.5**).
 
 O pacote contém apenas o executável, `assets/`, `mods/` e os arquivos de
 configuração — **não** inclui ROM nem patch. Para jogar, você precisa de:

@@ -281,9 +281,10 @@ gerados.
 * `tools/apply_renderer_hooks.py`: `LLE_COVERED_PCS = {0x029B0C, 0x029B12}`
   (sites dentro de `ProcessExtendedSprites`, rebaixado para LLE). Os outros 21
   sites permanecem obrigatorios.
-* `src/mods/coop/coop_hooks.def`: 5 sites interiores redeclarados como
-  `COOP_HOOK_INSIDE(pc, owner)` (`0x00C569`, `0x00F2CD`, `0x02BAAF`,
-  `0x05D83E`, `0x05D8B7`).
+* `src/mods/coop/coop_hooks.def`: 8 sites interiores redeclarados como
+  `COOP_HOOK_INSIDE(pc, owner)`. Os 5 originais sao `0x00C569`, `0x00F2CD`,
+  `0x02BAAF`, `0x05D83E`, `0x05D8B7`; o upstream 0.15.5 acrescentou
+  `0x00A21B`, `0x00A28A` e `0x01F78A`, que tambem precisam ficar internos.
 * `tools/apply_overrides.py`: detecta funcoes donas LLE-only e pula seus
   block patches com mensagem explicita. 4 patches do Falcon ficam inativos.
 
@@ -309,3 +310,28 @@ codigo nao recupera AOT (experimento `exp_banks.sh`).
 * 4 block patches do Falcon inativos.
 * 2 sites do renderer cobertos apenas pelo interpretador.
 * ROM, C gerado e binario nao devem ser redistribuidos (uso pessoal).
+
+---
+
+## 11. Sincronizacao com o upstream 0.15.5
+
+* Data: 01/11/2026.
+* Merge `74ab3e8` do upstream (`46b6d4f` + `f1c7b5b` + `6a5923e`) no branch
+  `ptbr`; submodulo `snesrecomp` de `cc095ad4` para `90196539` (37 commits).
+* Tag de seguranca: `pre-sync-20261101-1356`.
+* Release: `v0.15.5-ptbr.2` (zip 6,81 MB).
+* Validacao: build completo, boot headless com a ROM traduzida e
+  `--benchmark 300` -> ~504 fps (exit 0).
+
+### 11.1 Correcoes no `tools/build.ps1`
+
+Dois problemas de ambiente apareceram nesta sincronizacao:
+
+* **CMake nao encontrado.** O glob fixo exigia um nivel extra de pasta
+  (`2022\*\*\Common7\...`), que nao existe no VS Build Tools atual. A
+  descoberta agora usa `vswhere` (fonte oficial), com fallback para
+  `Program Files`, `Program Files (x86)` e `PATH`.
+* **`regen.sh` falhava com `cd: too many arguments`.** O caminho com acento
+  era passado ao bash por variavel de ambiente; o Windows converte para a code
+  page ANSI e o bash recebe bytes invalidos. O regen agora roda pela junction
+  ASCII (`C:\smw-ptbr`), a mesma usada pelo MSVC.
