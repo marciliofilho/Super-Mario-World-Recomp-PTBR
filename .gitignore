@@ -70,3 +70,7 @@ release/
 # from third_party/SMWDisX, and the asar built from third_party/asar.
 # Both are reproducible from the pins by tools/ingest_smwdisx.py.
 _smw_build/
+# Artefatos locais de build do Port Keeper (gerados, nunca versionar)
+recomp/disassembly-layout.json
+recomp/funcs.h
+recomp/disassembly-layout.json.orig
