@@ -9,6 +9,17 @@ para PT-BR (Killer Skull v1.2)** como entrada do recompilador.
 > derivam de obra comercial. Nada disso deve ser redistribuído.
 > Ver `docs/DIAGNOSTICO.md` §9.
 
+## Créditos e licença
+
+Este repositório **não é um fork**. Contém apenas documentação e scripts
+originais; o framework e o port pertencem a Matthew Stanley (`mstan`) e estão
+sob **PolyForm Noncommercial 1.0.0**. As modificações de código vivem em um
+[fork separado](https://github.com/marciliofilho/SuperMarioWorldRecomp), branch
+`ptbr`.
+
+- Detalhes completos: [`CREDITS.md`](CREDITS.md)
+- Licença deste repositório (apenas os arquivos originais): [`LICENSE`](LICENSE)
+
 ## Estrutura
 
 ```
