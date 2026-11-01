@@ -1,0 +1,22 @@
+# ROMs e artefatos derivados de obra comercial — nunca versionar
+rom/*.sfc
+rom/*.smc
+rom/*.srm
+rom/*.ips
+rom/*.bps
+rom/*.ups
+rom/*.xdelta
+
+# Binários e saídas locais
+*.exe
+*.dll
+*.pdb
+*.ilk
+
+# Saída de build e código gerado
+build/
+SuperMarioWorldRecomp/
+
+# Ferramentas
+.vs/
+*.user
