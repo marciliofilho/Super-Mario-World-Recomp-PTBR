@@ -30,7 +30,10 @@
 #include "smw_renderer.h"
 #ifdef SMW_COOP_BUILD
 #include "coop_patch.h"
+#endif
+#if SNESRECOMP_NET
 #include "snes_netplay.h"
+#include "snes_host_app.h"
 #include "smw_netplay_lobby.h"
 #endif
 #include "util.h"
@@ -136,7 +139,7 @@ static void StallLogFrame(uint32 frame, Uint64 t0, Uint64 t_events,
 }
 static uint32 GetActiveControllers(void);
 static void RefreshKeybindControllerBits(void);
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
 static int ResolveNetplayInputPlayer(int local_slot);
 static uint16_t CaptureLocalNetplayButtons(void);
 static int NetplayBarrierAdmit(bool *running);
@@ -225,7 +228,7 @@ static SDL_mutex *g_benchmark_phase_mutex;
 #endif
 
 static GamepadInfo g_gamepad[2];
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
 static SnesNetplayConfig g_netplay_cfg;
 static int g_netplay_pending;
 static int g_netplay_from_lobby;
@@ -1241,7 +1244,7 @@ int main(int argc, char** argv) {
   static const uint32_t kSmwUsaCrc32 = 0x82B20638u;
   int rom_resolved_by_launcher = 0;
 
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
   /* Headless/dev LAN sessions use the same netcode and frame barrier as
    * recomp-ui sessions; SNES_NET_* only replaces the launcher handoff. */
   snes_netplay_config_defaults(&g_netplay_cfg);
@@ -1263,25 +1266,11 @@ int main(int argc, char** argv) {
         SmwNetplayLauncherDisconnect();
         return 2;
       }
-      snes_netplay_config_defaults(&g_netplay_cfg);
-      g_netplay_cfg.enabled = 1;
-      g_netplay_cfg.local_slot = net.local_slot;
-      g_netplay_cfg.input_player =
-          (net.input_player == 0 || net.input_player == 1)
-              ? net.input_player : -1;
-      g_netplay_cfg.session_id = net.session_id ? net.session_id : 1u;
-      g_netplay_cfg.transport = 0;
-      snprintf(g_netplay_cfg.bind_hostport,
-               sizeof(g_netplay_cfg.bind_hostport), "%s",
-               net.bind_hostport);
-      snprintf(g_netplay_cfg.peer_hostport,
-               sizeof(g_netplay_cfg.peer_hostport), "%s",
-               net.peer_hostport);
-      snes_netplay_apply_env(&g_netplay_cfg);
-      if (net.input_delay >= 0 && net.input_delay <= 16)
-        g_netplay_cfg.input_delay = net.input_delay;
-      g_netplay_pending = 1;
-      g_netplay_from_lobby = 1;
+      SnesHostLaunchResult launch;
+      snes_host_app_apply_launch(&net, &launch);
+      g_netplay_cfg = launch.net_cfg;
+      g_netplay_pending = launch.netplay_enabled;
+      g_netplay_from_lobby = launch.from_lobby;
     }
   }
 #endif
@@ -1323,7 +1312,7 @@ int main(int argc, char** argv) {
     const char *no_launcher = getenv("SNESRECOMP_NO_LAUNCHER");
     int want_launcher = force_launcher ||
         (!headless && !have_positional && !(no_launcher && *no_launcher));
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
     if (g_netplay_pending) want_launcher = 0;
 #endif
 
@@ -1382,7 +1371,7 @@ int main(int argc, char** argv) {
       ls.skip_launcher = g_config.skip_launcher;
       ls.msu1_enabled = g_config.msu1_enabled;
       snprintf(ls.msu1_dir, sizeof(ls.msu1_dir), "%s", g_config.msu1_dir);
-#if defined(RECOMP_LAUNCHER) && defined(SMW_COOP_BUILD)
+#if defined(RECOMP_LAUNCHER) && SNESRECOMP_NET
       snprintf(ls.netplay_player_name, sizeof(ls.netplay_player_name),
                "%s", g_config.netplay_player_name);
 #endif
@@ -1411,7 +1400,7 @@ int main(int argc, char** argv) {
       memset(&gi, 0, sizeof(gi));
 #endif
 #ifdef SMW_COOP_BUILD
-      gi.name = "Super Mario World Co-op";
+      gi.name = "Super Mario World";
 #else
       gi.name = "Super Mario World";
 #endif
@@ -1445,7 +1434,7 @@ int main(int argc, char** argv) {
                      "packs for SMW MSU+ or Plus Ultra will not line up.";
 #endif
       gi.config_path = config_file;  /* hotkey editor targets the live config */
-#if defined(RECOMP_LAUNCHER) && defined(SMW_COOP_BUILD)
+#if defined(RECOMP_LAUNCHER) && SNESRECOMP_NET
       gi.netplay_supported = 1;
       gi.netplay = SmwNetplayLauncherCallbacks();
 #endif
@@ -1470,13 +1459,13 @@ int main(int argc, char** argv) {
                                          &ls, &gi, "launcher", init_rom,
                                          rom_path_buf, sizeof(rom_path_buf));
 #endif
-#if defined(RECOMP_LAUNCHER) && defined(SMW_COOP_BUILD)
+#if defined(RECOMP_LAUNCHER) && SNESRECOMP_NET
       RecompLauncherCNetplayLaunch net = ls.netplay_launch;
 #endif
       host_report_breadcrumb("launcher: action=%d rom=%s", act,
                              rom_path_buf[0] ? rom_path_buf : "(none)");
       if (act == 1) {
-#if defined(RECOMP_LAUNCHER) && defined(SMW_COOP_BUILD)
+#if defined(RECOMP_LAUNCHER) && SNESRECOMP_NET
         snprintf(g_config.netplay_player_name,
                  sizeof(g_config.netplay_player_name), "%s",
                  ls.netplay_player_name);
@@ -1516,7 +1505,7 @@ int main(int argc, char** argv) {
         g_config.deadzone[0] = (uint8)ls.deadzone[0];
         g_config.deadzone[1] = (uint8)ls.deadzone[1];
         g_config.skip_launcher = ls.skip_launcher != 0;
-#if defined(RECOMP_LAUNCHER) && defined(SMW_COOP_BUILD)
+#if defined(RECOMP_LAUNCHER) && SNESRECOMP_NET
         snprintf(g_config.netplay_player_name,
                  sizeof(g_config.netplay_player_name), "%s",
                  ls.netplay_player_name);
@@ -1535,27 +1524,13 @@ int main(int argc, char** argv) {
          * RefreshKeybindControllerBits, so a plugged-in controller no longer
          * disables the keyboard. */
         g_config.has_keyboard_controls |= 1;
-#if defined(RECOMP_LAUNCHER) && defined(SMW_COOP_BUILD)
+#if defined(RECOMP_LAUNCHER) && SNESRECOMP_NET
         if (net.enabled) {
-          snes_netplay_config_defaults(&g_netplay_cfg);
-          g_netplay_cfg.enabled = 1;
-          g_netplay_cfg.local_slot = net.local_slot;
-          g_netplay_cfg.input_player =
-              (net.input_player == 0 || net.input_player == 1)
-                  ? net.input_player : -1;
-          g_netplay_cfg.session_id = net.session_id ? net.session_id : 1u;
-          g_netplay_cfg.transport = 0;
-          snprintf(g_netplay_cfg.bind_hostport,
-                   sizeof(g_netplay_cfg.bind_hostport), "%s",
-                   net.bind_hostport);
-          snprintf(g_netplay_cfg.peer_hostport,
-                   sizeof(g_netplay_cfg.peer_hostport), "%s",
-                   net.peer_hostport);
-          snes_netplay_apply_env(&g_netplay_cfg);
-          if (net.input_delay >= 0 && net.input_delay <= 16)
-            g_netplay_cfg.input_delay = net.input_delay;
-          g_netplay_pending = 1;
-          g_netplay_from_lobby = 1;
+          SnesHostLaunchResult launch;
+          snes_host_app_apply_launch(&net, &launch);
+          g_netplay_cfg = launch.net_cfg;
+          g_netplay_pending = launch.netplay_enabled;
+          g_netplay_from_lobby = launch.from_lobby;
           host_report_breadcrumb(
               "launcher: netplay slot=%d session=%u bind=%s peer=%s delay=%d",
               net.local_slot, (unsigned)net.session_id,
@@ -1766,7 +1741,7 @@ int main(int argc, char** argv) {
   int window_height = custom_size ? g_config.window_height : g_current_window_scale * g_snes_height;
 
 session_reboot:
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
   /* A rematch is a cold emulation session inside the same process. Lobby and
    * ROM selection survive, while all device/input/session state is rebuilt. */
   memset(&g_gamepad[0], 0, sizeof(g_gamepad[0]));
@@ -2010,7 +1985,7 @@ error_reading:;
   }
 
   if (g_config.autosave && SmwCoopPersistenceReady()
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
       && !g_netplay_pending
 #endif
   )
@@ -2036,7 +2011,7 @@ error_reading:;
   Uint64 benchmark_start = g_benchmark_frames > 0
       ? SDL_GetPerformanceCounter() : 0;
 
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
   if (g_netplay_pending) {
     if (g_netplay_cfg.input_player != 0 && g_netplay_cfg.input_player != 1)
       g_netplay_cfg.input_player =
@@ -2132,7 +2107,7 @@ error_reading:;
         }
         break;
       case SDL_KEYDOWN:
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
         if (snes_netplay_active() &&
             SNESRECOMP_SDL_EVENT_KEY(event) == SDLK_ESCAPE) {
           NetplaySoftExit("escape");
@@ -2148,7 +2123,7 @@ error_reading:;
                     SNESRECOMP_SDL_EVENT_MOD(event), false);
         break;
       case SDL_QUIT:
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
         if (snes_netplay_active()) NetplaySoftExit("sdl_quit");
 #endif
         running = false;
@@ -2185,7 +2160,7 @@ error_reading:;
     {
       int ls = debug_server_consume_loadstate();
       if (ls >= 0) {
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
         if (!snes_netplay_request_load(ls))
 #endif
         RtlSaveLoad(kSaveLoad_Load, ls);
@@ -2197,7 +2172,7 @@ error_reading:;
        * serialization walks live CPU/PPU/APU state and is not thread-safe. */
       int ss = debug_server_consume_savestate();
       if (ss >= 0) {
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
         if (!snes_netplay_request_save(ss))
 #endif
         RtlSaveLoad(kSaveLoad_Save, ss);
@@ -2218,11 +2193,11 @@ error_reading:;
 
     g_audio_producer_active = g_audio_device != 0 && !g_turbo &&
         (!g_benchmark_frames || g_benchmark_audio_paced);
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
     if (snes_netplay_active()) g_audio_producer_active = false;
 #endif
     uint32 inputs;
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
     if (snes_netplay_active()) {
       g_turbo = 0;
       g_paused = 0;
@@ -2232,7 +2207,7 @@ error_reading:;
       }
       inputs = snes_netplay_published_inputs() | snes_netplay_active_mask();
       uint64_t guest_phase = BenchmarkPhaseBegin();
-      RtlRunFrame(inputs);
+      if (SmwCoopHostFrame(inputs)) RtlRunFrame(inputs);
       BenchmarkPhaseEnd(kSnesRecompBenchmarkPhase_GuestFrame, guest_phase);
       snes_netplay_finish_frame();
       {
@@ -2302,7 +2277,7 @@ error_reading:;
       if (s_ft < 0) { const char *e = getenv("SNESRECOMP_FORCE_TURBO");
                       s_ft = (e && e[0] && e[0] != '0') ? 1 : 0; }
       if (s_ft
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
           && !snes_netplay_active()
 #endif
       ) g_turbo = 1; }
@@ -2328,7 +2303,7 @@ error_reading:;
           g_turbo = 0;
       }
     }
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
     if (snes_netplay_active()) g_turbo = 0;
 #endif
     RtlAudioSetFastForward(g_turbo != 0);
@@ -2469,14 +2444,14 @@ error_reading:;
   }
 
   if (g_config.autosave && SmwCoopPersistenceReady()
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
       && !g_netplay_started &&
       !snes_netplay_return_to_lobby_requested()
 #endif
   )
     HandleCommand(kKeys_Save + 0, true);
 
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
   snes_netplay_shutdown();
 #endif
   if (SmwCoopEnabled()) SmwCoopStorageShutdown(SmwCoopStorageSelected());
@@ -2521,7 +2496,7 @@ error_reading:;
   g_window = NULL;
   window = NULL;
 
-#if defined(RECOMP_LAUNCHER) && defined(SMW_COOP_BUILD)
+#if defined(RECOMP_LAUNCHER) && SNESRECOMP_NET
   if (snes_netplay_return_to_lobby_requested() && g_netplay_from_lobby) {
     RecompLauncherCSettings ls;
     RecompLauncherCGameInfo gi;
@@ -2561,7 +2536,7 @@ error_reading:;
 
     memset(&gi, 0, sizeof(gi));
     launcher_profile_apply("snes", &gi);
-    gi.name = "Super Mario World Co-op";
+    gi.name = "Super Mario World";
     gi.region = "(USA)";
     gi.sram_path = "saves/save.srm";
     gi.num_players = 2;
@@ -2579,7 +2554,7 @@ error_reading:;
     gi.resume_netplay_endpoint = resume_endpoint;
 
     act = recomp_launcher_run_window(
-        "Super Mario World Co-op \xE2\x80\x94 Launcher", &ls, &gi, ".",
+        "Super Mario World \xE2\x80\x94 Launcher", &ls, &gi, ".",
         rom_path_buf, resumed_rom, sizeof(resumed_rom));
     net = ls.netplay_launch;
 
@@ -2611,23 +2586,11 @@ error_reading:;
       g_config.deadzone[1] = (uint8)ls.deadzone[1];
       WriteConfigFile(config_file);
 
-      snes_netplay_config_defaults(&g_netplay_cfg);
-      g_netplay_cfg.enabled = 1;
-      g_netplay_cfg.local_slot = net.local_slot;
-      g_netplay_cfg.input_player =
-          (net.input_player == 0 || net.input_player == 1)
-              ? net.input_player : -1;
-      g_netplay_cfg.session_id = net.session_id ? net.session_id : 1u;
-      g_netplay_cfg.transport = 0;
-      snprintf(g_netplay_cfg.bind_hostport,
-               sizeof(g_netplay_cfg.bind_hostport), "%s", net.bind_hostport);
-      snprintf(g_netplay_cfg.peer_hostport,
-               sizeof(g_netplay_cfg.peer_hostport), "%s", net.peer_hostport);
-      snes_netplay_apply_env(&g_netplay_cfg);
-      if (net.input_delay >= 0 && net.input_delay <= 16)
-        g_netplay_cfg.input_delay = net.input_delay;
-      g_netplay_pending = 1;
-      g_netplay_from_lobby = 1;
+      SnesHostLaunchResult launch;
+      snes_host_app_apply_launch(&net, &launch);
+      g_netplay_cfg = launch.net_cfg;
+      g_netplay_pending = launch.netplay_enabled;
+      g_netplay_from_lobby = launch.from_lobby;
       free(kRom);
       kRom = NULL;
       host_report_breadcrumb(
@@ -2648,7 +2611,7 @@ error_reading:;
   }
 #endif
 
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
   if (g_netplay_from_lobby) SmwNetplayLauncherDisconnect();
 #endif
   free(kRom);
@@ -2722,7 +2685,7 @@ static void RefreshKeybindControllerBits(void) {
   }
 }
 
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
 static int ResolveNetplayInputPlayer(int local_slot) {
   const int pad0 = g_gamepad[0].joystick_id != -1;
   const int pad1 = g_gamepad[1].joystick_id != -1;
@@ -2747,6 +2710,7 @@ static uint16_t CaptureLocalNetplayButtons(void) {
   raw = g_input_state | g_pad_buttons | g_gamepad[0].axis_buttons |
         ((uint32)g_gamepad[1].axis_buttons << 12);
   raw |= TickScript();
+  raw |= debug_server_get_controller_inputs();
   return idx == 1 ? (uint16_t)((raw >> 12) & 0x0fffu)
                   : (uint16_t)(raw & 0x0fffu);
 }
@@ -2924,7 +2888,7 @@ static void HandleCommand(uint32 j, bool pressed) {
   }
 
   if (j == kKeys_Turbo) {
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
     if (snes_netplay_active()) return;
 #endif
     g_turbo = pressed;
@@ -2935,12 +2899,12 @@ static void HandleCommand(uint32 j, bool pressed) {
     return;
   if (j <= kKeys_Save_Last && !SmwCoopPersistenceReady()) return;
   if (j <= kKeys_Load_Last) {
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
     if (snes_netplay_request_load(j - kKeys_Load)) return;
 #endif
     RtlSaveLoad(kSaveLoad_Load, j - kKeys_Load);
   } else if (j <= kKeys_Save_Last) {
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
     if (snes_netplay_request_save(j - kKeys_Save)) return;
 #endif
     RtlSaveLoad(kSaveLoad_Save, j - kKeys_Save);
@@ -2954,20 +2918,20 @@ static void HandleCommand(uint32 j, bool pressed) {
       snesrecomp_sdl_show_cursor(g_cursor != 0);
       break;
     case kKeys_Reset:
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
       if (snes_netplay_active()) break;
 #endif
       SmwCoopResetSession();
       RtlReset(1);
       break;
     case kKeys_Pause:
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
       if (snes_netplay_active()) break;
 #endif
       g_paused = !g_paused;
       break;
     case kKeys_PauseDimmed:
-#ifdef SMW_COOP_BUILD
+#if SNESRECOMP_NET
       if (snes_netplay_active()) break;
 #endif
       g_paused = !g_paused;

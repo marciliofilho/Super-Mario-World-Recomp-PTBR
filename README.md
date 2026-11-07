@@ -106,6 +106,17 @@ See [the renderer guide](docs/adaptive-renderer.md) for building, isolated
 playtesting, architecture, checks, and current limitations. Old `Widescreen`
 and `WidescreenHud` INI fields no longer control this mod.
 
+## Online netplay
+
+Open **Netplay → Online Netplay** in the standard launcher and sign in with
+Discord. Online rooms require sign-in. Choose **Host Lobby**, enter a room
+name, and select **Create**. The other player joins the room from the lobby
+browser. Both players must use the same build. **LAN / Direct IP** remains
+available without an account.
+
+For simultaneous play, enable **SMW Native Co-op (Experimental)** and choose
+**2 Player** in the original game menu. See the prototype notes below.
+
 ## Experimental native simultaneous co-op
 
 **Playable prototype ? experimental and disabled by default.** Mario (P1) and
@@ -354,6 +365,16 @@ are correctness reruns; the i5-4670 timings above belong to the earlier
 human-approved baseline, not a new current-main benchmark.
 
 ## License
+
+For this project's code covered by the [PolyForm Noncommercial License](LICENSE),
+[PERMISSIONS.md](PERMISSIONS.md) grants standing permission for voluntary
+donations, sponsorships, and advertising revenue, including support for broader
+development initiatives. Payment must not buy access to the software, games
+built with it, or their updates, features, or game content, including early access.
+
+Matthew Stanley has authority from the relevant copyright holders to grant
+these permissions for the project's PolyForm-covered code. Third-party
+components and code explicitly licensed under other terms retain those terms.
 
 PolyForm Noncommercial 1.0.0. See `LICENSE`. Code in this repo is original
 except where noted in **Acknowledgements** above; vendored dependencies under
