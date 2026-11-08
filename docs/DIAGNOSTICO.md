@@ -371,3 +371,46 @@ o build agora compila `recomp-net` + `libjuice` (`juice-static.lib`,
 `recomp_net.lib`, `recomp_launcher_netplay.lib`). Isso aumenta o executavel
 (~16,05 MB em 0.15.5 -> ~17,30 MB em 0.15.6) e o tempo de build. Se algum dia
 for preciso um build LAN-only, configurar `-DSMW_NETPLAY_ICE=OFF`.
+
+---
+
+## 13. Sincronizacao com o upstream c2fefa4
+
+* Data: 08/11/2026.
+* Merge `d8eab5d` do commit `c2fefa4` ("Add opt-in local diagnostic recordings
+  and unattended launch guards") no branch `ptbr`, sem conflitos.
+* Submodulo: `snesrecomp` `dc877ce` -> `ccfc129`.
+* Tag de seguranca: `pre-sync-20261108-1800`.
+* Release: `v0.15.6-ptbr.1` (zip 7,01 MB, sem capa do launcher).
+* Validacao: build completo, boot headless e `--benchmark 300` -> ~505 fps.
+
+### 13.1 Diagnostico/replay opt-in
+
+O upstream adiciona `src/smw_replay.c`, `src/host_ui.h`, o mod
+`super-mario-world.developer.diagnostics` e `tools/replay_diagnostic.py`. A
+gravacao fica **desligada por padrao** (`enabled = false` no `state.toml`) e o
+manifesto exige o SHA da ROM americana original (`0838e531...`), portanto o mod
+e **inerte** com a ROM traduzida (`f0bb0f40...`) usada neste port.
+
+### 13.2 Guardas de inicializacao nao interativa
+
+`src/main.c` passa a suprimir dialogos quando roda headless, com benchmark,
+script, replay ou `--no-launcher`. O merge nao tocou no ajuste de teclado
+PT-BR nem no CRC da ROM.
+
+### 13.3 CMake exige repositorio git
+
+O novo bloco de build usa `git rev-parse HEAD` com
+`COMMAND_ERROR_IS_FATAL ANY` para gravar a revisao do port e do framework no
+replay. Compilar a partir de um zip sem `.git` falha no configure; use o clone
+git (como o `tools/build.ps1` ja faz).
+
+### 13.4 Capa do launcher removida
+
+A `recomp/launcher/boxart.tga` (capa oficial do SNES, obra da Nintendo) foi
+removida do repositorio e dos pacotes por direitos autorais. O `BOXART` e
+opcional no CMake (`if(RUI_BOXART AND EXISTS ...)`) e o runtime trata a
+ausencia, entao o launcher abre normalmente sem imagem de capa. Os binarios das
+releases antigas `v0.15.5-ptbr` e `v0.15.5-ptbr.2` foram removidos pelo mesmo
+motivo; apenas `v0.15.6-ptbr` (asset substituido) e `v0.15.6-ptbr.1` distribuem
+zip, ambos sem a capa.

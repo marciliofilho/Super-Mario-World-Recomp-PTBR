@@ -24,7 +24,7 @@
     Remove build/ antes de configurar.
 
 .PARAMETER Version
-    Versao gravada no executavel (host_report). Padrao: 0.15.6-ptbr
+    Versao gravada no executavel (host_report). Padrao: 0.15.6-ptbr.1
 
 .PARAMETER Rom
     ROM traduzida de entrada. Padrao: <projeto>\rom\smw-ptbr.sfc
@@ -36,7 +36,7 @@
 param(
     [switch]$SkipRegen,
     [switch]$Clean,
-    [string]$Version = '0.15.6-ptbr',
+    [string]$Version = '0.15.6-ptbr.1',
     [string]$Rom
 )
 

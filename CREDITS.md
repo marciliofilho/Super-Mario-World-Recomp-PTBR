@@ -23,8 +23,8 @@ redistribuição. Este fork mantém a mesma licença — ver [`LICENSE`](LICENSE
 - Branch principal do port: `ptbr`
 - Notas do port: [`PTBR.md`](PTBR.md)
 - Build para Windows x64: release
-  [`v0.15.6-ptbr`](https://github.com/marciliofilho/Super-Mario-World-Recomp-PTBR/releases/tag/v0.15.6-ptbr)
-  — base upstream 0.15.6, apenas executável e assets, sem ROM nem patch
+  [`v0.15.6-ptbr.1`](https://github.com/marciliofilho/Super-Mario-World-Recomp-PTBR/releases/tag/v0.15.6-ptbr.1)
+  — base upstream 0.15.6 + `c2fefa4`, apenas executável e assets, sem ROM nem patch
 
 ## Tradução
 
