@@ -26,6 +26,9 @@
 .PARAMETER Version
     Versao gravada no executavel (host_report). Padrao: 0.15.6-ptbr
 
+.PARAMETER Rom
+    ROM traduzida de entrada. Padrao: <projeto>\rom\smw-ptbr.sfc
+
 .EXAMPLE
     .\tools\build.ps1
 #>
@@ -33,15 +36,24 @@
 param(
     [switch]$SkipRegen,
     [switch]$Clean,
-    [string]$Version = '0.15.6-ptbr'
+    [string]$Version = '0.15.6-ptbr',
+    [string]$Rom
 )
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
 $Proj = Split-Path -Parent $PSScriptRoot
-$Repo = Join-Path $Proj 'SuperMarioWorldRecomp'
-$Rom = Join-Path $Proj 'rom\smw-ptbr.sfc'
+# Duas organizacoes sao aceitas:
+#   1. o script vive no proprio repo do port  -> $Proj e o repo;
+#   2. o script vive num diretorio de projeto -> o clone fica em
+#      $Proj\SuperMarioWorldRecomp.
+if (Test-Path (Join-Path $Proj 'CMakeLists.txt')) {
+    $Repo = $Proj
+} else {
+    $Repo = Join-Path $Proj 'SuperMarioWorldRecomp'
+}
+if (-not $Rom) { $Rom = Join-Path $Proj 'rom\smw-ptbr.sfc' }
 
 if (-not (Test-Path $Repo)) { throw "Repositorio nao encontrado: $Repo" }
 if (-not (Test-Path $Rom)) {
@@ -61,7 +73,11 @@ if ($Proj -match '[^\x20-\x7E]') {
     }
     Write-Host "caminho com acento; compilando via junction $AsciiProj"
 }
-$AsciiRepo = Join-Path $AsciiProj 'SuperMarioWorldRecomp'
+if ($Repo -eq $Proj) {
+    $AsciiRepo = $AsciiProj
+} else {
+    $AsciiRepo = Join-Path $AsciiProj 'SuperMarioWorldRecomp'
+}
 
 # --- ferramentas ------------------------------------------------------------
 $Py = 'C:\Users\Usuario\AppData\Local\Programs\Python\Python312\python.exe'
