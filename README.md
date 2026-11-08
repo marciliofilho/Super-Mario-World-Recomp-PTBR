@@ -1,3 +1,52 @@
+# Super Mario World PT-BR (recompilação nativa)
+
+**Fork PT-BR** do [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp),
+de Matthew Stanley (`mstan`) — todo o crédito do framework e do port original é
+dele. Este fork adiciona a tradução brasileira **Killer Skull v1.2** e os
+ajustes de teclado para o jogador 1.
+
+> **Uso pessoal e não comercial**, sob **PolyForm Noncommercial 1.0.0** (ver
+> [`LICENSE`](LICENSE)). Nenhuma ROM, patch, save ou código gerado é
+> distribuído neste repositório.
+
+## Download (Windows x64)
+
+Release: [`v0.15.6-ptbr`](https://github.com/marciliofilho/Super-Mario-World-Recomp-PTBR/releases/tag/v0.15.6-ptbr)
+(base upstream **0.15.6**).
+
+O zip contém apenas o executável, `assets/`, `mods/`, `config.ini`,
+`keybinds.ini` e `LEIA-ME.txt` — **não** inclui ROM nem patch. Para jogar,
+você precisa de:
+
+1. ROM americana de *Super Mario World* (dump limpo, sem header).
+2. Patch de tradução **Killer Skull v1.2** aplicado por você.
+
+O resultado deve ter CRC32 `82B20638` e SHA-256
+`f0bb0f4099f6192ed7cefeef5719e9c633d6c61f9b6279252ddf3af092f46dfa`.
+Qualquer outra ROM é rejeitada na inicialização.
+
+## Controles (teclado)
+
+```
+A = A        S = B        D = X        W = Y
+Q = L        R = R        Setas = direcional
+Enter = Start             Right Shift = Select
+```
+
+## Estrutura deste fork
+
+- branch `ptbr` — código do port com os ajustes PT-BR;
+- [`PTBR.md`](PTBR.md) — notas do port;
+- [`CREDITS.md`](CREDITS.md) — créditos completos e licença;
+- [`docs/DIAGNOSTICO.md`](docs/DIAGNOSTICO.md) — diagnóstico técnico;
+- [`tools/build.ps1`](tools/build.ps1) — pipeline reprodutível de build;
+- [`tools/apply_ips.ps1`](tools/apply_ips.ps1) — aplicação do patch de tradução.
+
+Para compilar do zero, veja a seção de build em
+[`docs/DIAGNOSTICO.md`](docs/DIAGNOSTICO.md).
+
+---
+
 # SuperMarioWorldRecomp
 
 > _This recompilation is a **byproduct of developing
