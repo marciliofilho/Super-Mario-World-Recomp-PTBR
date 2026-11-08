@@ -37,6 +37,10 @@ uses copied YI2 entrance state with actor positions/equipment staged for framing
 the Yoshi sample resumes an existing two-rider fixture. These are presentation
 illustrations, not additional campaign/mechanic acceptance claims.
 
+> **Nota do fork PT-BR:** as duas capturas acima foram substituídas no README
+> por capturas da versão em português e removidas da árvore atual. Os arquivos
+> originais permanecem no histórico do git.
+
 Each isolated muted run executes 155 frames, loads its copied state after
 60 frames, captures frame 120 and exits normally. Both have zero dispatch
 misses. Original snapshots, commands, executable/ROM hashes, logs, results and
