@@ -25,6 +25,20 @@ O resultado deve ter CRC32 `82B20638` e SHA-256
 `f0bb0f4099f6192ed7cefeef5719e9c633d6c61f9b6279252ddf3af092f46dfa`.
 Qualquer outra ROM é rejeitada na inicialização.
 
+## Capturas (PT-BR)
+
+![Mapa do mundo — Casa do Yoshi](docs/images/ptbr-mapa-casa-do-yoshi.png)
+
+*Mapa do mundo com a tradução PT-BR.*
+
+![Gameplay — Floresta da Ilusão](docs/images/ptbr-gameplay-floresta.png)
+
+*HUD traduzido (TEMPO, vidas e itens) em português.*
+
+![Introdução da história](docs/images/ptbr-intro-historia.png)
+
+*Texto de abertura da história em português.*
+
 ## Controles (teclado)
 
 ```
@@ -184,14 +198,6 @@ ordinary Yoshi riding; shared enemy outcomes and rewards; recovery bubbles;
 and a shared camera. The reserve boxes use the original artwork with M/L
 badges. It also works with **SMW Adaptive Widescreen**. The overworld and
 special scenes use the original single lead.
-
-![Mario and Luigi playing together in Yoshi's Island 2](docs/images/native-coop-widescreen.png)
-
-*Mario and Luigi together in an adaptive widescreen view.*
-
-![Mario and Luigi each riding Yoshi](docs/images/native-coop-yoshi.png)
-
-*Separate riders and reserve items in the native view.*
 
 This is an early prototype, with representative common interactions tested
 and owner playtesting completed. Some unusual combinations can still behave
