@@ -414,3 +414,31 @@ ausencia, entao o launcher abre normalmente sem imagem de capa. Os binarios das
 releases antigas `v0.15.5-ptbr` e `v0.15.5-ptbr.2` foram removidos pelo mesmo
 motivo; apenas `v0.15.6-ptbr` (asset substituido) e `v0.15.6-ptbr.1` distribuem
 zip, ambos sem a capa.
+
+---
+
+## 14. Sincronizacao com o upstream afc5850
+
+* Data: 11/11/2026.
+* Merge `34c01aa` do commit `afc5850` ("Fix native co-op sprite returns through
+  the interpreter bridge") no branch `ptbr`, sem conflitos.
+* Submodulo: `snesrecomp` `ccfc129` -> `3d73fa2`.
+* Tag de seguranca: `pre-sync-20261111-2046`.
+* Release: `v0.15.6-ptbr.2` (zip 7,01 MB, sem capa do launcher).
+* Validacao: build do alvo principal, boot headless e `--benchmark 300` ->
+  ~490 fps.
+
+### 14.1 Correcao no bridge do interpretador
+
+O unico commit novo do framework e `3d73fa26` ("Complete finite interpreter
+owners after non-local guest returns"), que ajusta
+`runner/src/snes/interp_bridge.c` (+23/-5) e adiciona regressao em
+`tests/interp816/bridge_test.c` (+30). E a mesma camada usada pelos dois PCs
+cobertos apenas pelo interpretador (`LLE_COVERED_PCS = {0x029B0C, 0x029B12}`) e
+pelos patches Falcon pulados; nenhuma alteracao foi necessaria no port.
+
+### 14.2 Escopo do merge
+
+O commit upstream mexe **apenas** no ponteiro do submodulo `snesrecomp`. Nao ha
+mudanca em `src/`, CMake, manifestos de mod ou configuracao; por isso o build
+rodou com `-SkipRegen` (o C gerado nao muda).
