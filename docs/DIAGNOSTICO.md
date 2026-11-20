@@ -442,3 +442,44 @@ pelos patches Falcon pulados; nenhuma alteracao foi necessaria no port.
 O commit upstream mexe **apenas** no ponteiro do submodulo `snesrecomp`. Nao ha
 mudanca em `src/`, CMake, manifestos de mod ou configuracao; por isso o build
 rodou com `-SkipRegen` (o C gerado nao muda).
+
+---
+
+## 15. Sincronizacao com o upstream v0.15.10
+
+* Data: 20/11/2026.
+* Merge `a41182b` do upstream **v0.15.10** (`8c280aa`, `666d1d0`, `4fe8596`,
+  `72d7192`, `46525ab`) no branch `ptbr`, sem conflitos.
+* Submodulo: `recomp-ui` `0c6a176` -> `2816a54`; `snesrecomp` permanece em
+  `3d73fa2`.
+* Tag de seguranca: `pre-sync-20261120-1345`.
+* Release: `v0.15.10-ptbr` (zip 7,01 MB, sem capa do launcher).
+* Validacao: build completo (regen + compilacao), boot headless e
+  `--benchmark 300` -> ~478 fps.
+
+### 15.1 Renderizador adaptativo (shooter loader)
+
+O commit `666d1d0` corrige as continuacoes do loader de sprites no modo
+adaptativo, nos dois modos de execucao. `tools/apply_renderer_hooks.py` passa a
+exigir o site `shooter_tail` (bloco `02A8D8`, funcoes `SprXXX_LoadShooter_*` e
+`ParseLevelSpriteList_*`), e `src/smw_renderer_hooks.c` implementa
+`SmwRendererShooterTail`.
+
+O merge preservou os dois lados do arquivo: o waiver
+`LLE_COVERED_PCS = {0x029B0C, 0x029B12}` continua valendo e o novo
+`shooter_tail` foi aceito no conjunto obrigatorio. O site foi encontrado no C
+gerado a partir da ROM traduzida; nao foi necessario waiver novo.
+
+### 15.2 Soda Lake e janela padrao
+
+`46525ab` corrige telas corrompidas e crash de tela preta no Soda Lake com
+Adaptive Widescreen. `4fe8596` muda o padrao de perfis novos para uma janela
+1280x720; o `config.ini` do pacote foi atualizado de `WindowSize = Auto` para
+`1280x720`. O `state.toml` continua entregando os mods desligados.
+
+### 15.3 Diagnostico de controles
+
+`8c280aa` adiciona o alvo `smw-controller-report` (SDL), os scripts
+`tools/Collect-Controller-Diagnostics.ps1/.cmd` e `CONTROLLER_DIAGNOSTICS.md`,
+com o bump do `recomp-ui` para `2816a54`. O executavel extra nao entra no
+pacote de release deste port.
