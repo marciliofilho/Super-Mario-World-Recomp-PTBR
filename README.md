@@ -11,8 +11,8 @@ ajustes de teclado para o jogador 1.
 
 ## Download (Windows x64)
 
-Release: [`v0.15.10-ptbr`](https://github.com/marciliofilho/Super-Mario-World-Recomp-PTBR/releases/tag/v0.15.10-ptbr)
-(base upstream **0.15.10**).
+Release: [`v0.15.11-ptbr`](https://github.com/marciliofilho/Super-Mario-World-Recomp-PTBR/releases/tag/v0.15.11-ptbr)
+(base upstream **0.15.11**).
 
 O zip contém apenas o executável, `assets/`, `mods/`, `config.ini`,
 `keybinds.ini` e `LEIA-ME.txt` — **não** inclui ROM nem patch. Para jogar,

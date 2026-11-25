@@ -483,3 +483,47 @@ Adaptive Widescreen. `4fe8596` muda o padrao de perfis novos para uma janela
 `tools/Collect-Controller-Diagnostics.ps1/.cmd` e `CONTROLLER_DIAGNOSTICS.md`,
 com o bump do `recomp-ui` para `2816a54`. O executavel extra nao entra no
 pacote de release deste port.
+
+---
+
+## 16. Sincronizacao com o upstream v0.15.11
+
+* Data: 25/11/2026.
+* Merge `37fe31f` do upstream **v0.15.11 + 3 commits** (`c424beb`, `4c7e337`,
+  `ec862ec`, `cbbf35c`, `0a6ddb4`, `5e7eb47`, `7160687`) no branch `ptbr`,
+  sem conflitos.
+* Submodulo: `snesrecomp` `3d73fa2` -> `4348bdb` (122 commits).
+* Tag de seguranca: `pre-sync-20261125-0947`.
+* Release: `v0.15.11-ptbr` (zip 7,04 MB, sem capa do launcher).
+* Validacao: build completo (regen + compilacao), boot headless e
+  `--benchmark 300` -> ~380 fps.
+
+### 16.1 Co-op em plataformas giratorias
+
+Dois commits de gameplay entram no port: `c424beb` mantem riders e estado de
+redesenho independentes em plataformas giratorias, e `4c7e337` reseta a
+mascara de clipping de cada rider antes do passo nativo. O novo hook e
+`COOP_HOOK(0x01C9EC)` (nao `COOP_HOOK_INSIDE`), entao o conjunto dos 8 hooks
+internos permanece inalterado. Ha teste novo em
+`tools/test_coop_rotating_platforms_live.py`.
+
+### 16.2 Headless capture
+
+`0a6ddb4` conecta a captura headless do framework ao host desktop em
+`src/main.c` (saida de video/audio quando `HeadlessCapture_Enabled()`), e
+`5e7eb47` fixa o capture SDK e restaura o estado nativo do host. O modo e
+inerte no uso normal; nao altera o pacote de release.
+
+### 16.3 Preflight de save-state
+
+`src/smw_cpu_infra.c` valida o estado combinado antes de carregar (magic
+`HST1`, versao do guest e tamanho do estado de execucao), evitando ler
+snapshots de builds incompativeis.
+
+### 16.4 Framework e diagnostico
+
+O `snesrecomp` salta 122 commits (APU nativa, mouse bindings, screenshots,
+rewind, overlay keys, dispatch e PPU). O mod
+`super-mario-world.developer.diagnostics` passa a vir **ligado por padrao** em
+perfis novos; o `state.toml` entregue no pacote forca `recording = false`, e
+nenhuma gravacao e ativada sem o usuario mexer no launcher.
